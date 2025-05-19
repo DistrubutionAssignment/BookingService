@@ -3,12 +3,13 @@ using BookingService.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("DefaulltCors",
+    options.AddPolicy("DefaultCors",
         builder =>
         {
             builder.AllowAnyOrigin()
@@ -18,7 +19,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("BookingConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddOpenApi();
 
@@ -46,12 +47,42 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "EventService API", Version = "v1" });
+
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = JwtBearerDefaults.AuthenticationScheme,
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Skriv: Bearer {token}"
+    };
+    c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, securityScheme);
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+      { securityScheme, Array.Empty<string>() }
+    });
+});
+
+
 var app = builder.Build();
 
 app.UseHttpsRedirection();
 app.UseCors("DefaultCors");
-app.UseAuthorization();
 app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "EventService API V1");
+    c.RoutePrefix = string.Empty;
+});
+
 
 app.MapOpenApi();
 app.MapControllers();
