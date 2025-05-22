@@ -69,7 +69,8 @@ public class BookingController : ControllerBase
         var booking = new BookingModel
         {
             EventId = dto.EventId,
-            UserId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value,
+            //UserId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value,
+            UserId = "ANONYMOUS",
             BookingDate = DateTime.UtcNow,
             TicketAmount = dto.TicketAmount,
             FirstName = dto.FirstName,
