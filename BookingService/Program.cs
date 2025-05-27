@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using BookingService.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -21,28 +21,39 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddOpenApi();
 
 var jwt = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwt["Key"]!);
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-    .AddJwtBearer(Options =>
-    {
-        Options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwt["Issuer"],
-            ValidAudience = jwt["Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(key)
-        };
-    });
+
+builder.Services
+  .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+  .AddJwtBearer(options =>
+  {
+      options.TokenValidationParameters = new TokenValidationParameters
+      {
+          ValidateIssuer = true,
+          ValidateAudience = true,
+          ValidateLifetime = true,
+          ValidateIssuerSigningKey = true,
+          ValidIssuer = jwt["Issuer"],
+          ValidAudience = jwt["Audience"],
+          IssuerSigningKey = new SymmetricSecurityKey(key)
+      };
+
+      options.Events = new JwtBearerEvents
+      {
+          OnAuthenticationFailed = ctx =>
+          {
+              Console.WriteLine($"✖ Auth failed: {ctx.Exception.Message}");
+              return Task.CompletedTask;
+          },
+          OnTokenValidated = ctx =>
+          {
+              Console.WriteLine($"✔ Token valid för: {ctx.Principal!.Identity?.Name}");
+              return Task.CompletedTask;
+          }
+      };
+  });
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
@@ -51,20 +62,35 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "EventService API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "BookingService API", Version = "v1" });
 
-    var securityScheme = new OpenApiSecurityScheme
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
+        Description =
+          "JWT Authorization header.\r\n\r\n" +
+          "Format: **Bearer &lt;token&gt;**\r\n\r\n" +
+          "Klistra in endast token‐strängen (utan citattecken),\r\n" +
+          "Swagger UI lägger själv till \"Bearer \"-prefixet.",
         Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = JwtBearerDefaults.AuthenticationScheme,
-        BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Skriv: Bearer {token}"
-    };
-    c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, securityScheme);
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",           
+        BearerFormat = "JWT"
+    });
+
     c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-      { securityScheme, Array.Empty<string>() }
+      {
+        new OpenApiSecurityScheme
+        {
+          Reference = new OpenApiReference {
+            Type = ReferenceType.SecurityScheme,
+            Id = "Bearer"
+          },
+          In = ParameterLocation.Header,
+          Scheme = "bearer"
+        },
+        new string[]{}
+      }
     });
 });
 
@@ -84,6 +110,5 @@ app.UseSwaggerUI(c =>
 });
 
 
-app.MapOpenApi();
 app.MapControllers();
 app.Run();

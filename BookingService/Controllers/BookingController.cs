@@ -13,29 +13,34 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BookingService.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class BookingController : ControllerBase
+public class BookingController(DataContext context) : ControllerBase
 {
-    private readonly DataContext _context;
-    public BookingController(DataContext context)
-    {
-        _context = context;
-    }
+    private readonly DataContext _context = context;
 
     // GET /api/booking
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookings()
     {
-        var isAdmin = User.IsInRole("Admin");
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+        try {
+            var isAdmin = User.IsInRole("Admin");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
 
-        var q = _context.Bookings.AsQueryable();
-        if (!isAdmin)
-            q = q.Where(b => b.UserId == userId);
+            var q = _context.Bookings.AsQueryable();
+            if (!isAdmin)
+                q = q.Where(b => b.UserId == userId);
 
-        var list = await q.ToListAsync();
-        return Ok(list.Select(BookingFactory.ToDto));
+            var list = await q.ToListAsync();
+            return Ok(list.Select(BookingFactory.ToDto));
+        }
+        catch (Exception ex)
+        {
+        Console.Error.WriteLine(ex);
+        return StatusCode(500, ex.Message);
+        }
+
     }
 
     // GET /api/booking/{id}
