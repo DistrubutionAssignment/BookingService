@@ -9,6 +9,7 @@ public static class BookingFactory
     {
         Id = b.Id,
         EventId = b.EventId,
+        UserId = b.UserId,
         BookingDate = b.BookingDate,
         FirstName = b.FirstName,
         LastName = b.LastName,

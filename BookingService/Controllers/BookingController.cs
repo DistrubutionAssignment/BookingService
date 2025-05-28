@@ -20,7 +20,7 @@ public class BookingController(DataContext context) : ControllerBase
 {
     private readonly DataContext _context = context;
 
-    // GET /api/booking
+    // GET 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookings()
     {
@@ -43,7 +43,7 @@ public class BookingController(DataContext context) : ControllerBase
 
     }
 
-    // GET /api/booking/{id}
+    // GET 
     [HttpGet("{id}")]
     public async Task<ActionResult<BookingDto>> GetBooking(string id)
     {
@@ -58,24 +58,28 @@ public class BookingController(DataContext context) : ControllerBase
         return Ok(BookingFactory.ToDto(booking));
     }
 
-    // POST /api/booking
+    // POST 
     [HttpPost]
     public async Task<ActionResult<BookingDto>> CreateBooking(CreateBookingDto dto)
     {
-        // 1. Hämta event-pris från samma DB
+        //Hämta event-pris från samma DB
         var evt = await _context.Events.FindAsync(dto.EventId);
         if (evt == null)
             return BadRequest("Event not found");
 
-        // 2. Beräkna totalpris (antal biljetter finns i dto)
+        //Beräkna totalpris (antal biljetter finns i dto)
         var total = evt.Price * dto.TicketAmount;
 
-        // 3. Skapa booking
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+        if (userId == null)
+            return Unauthorized();
+
+
+        // Skapa booking
         var booking = new BookingModel
         {
             EventId = dto.EventId,
-            //UserId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value,
-            UserId = "ANONYMOUS",
+            UserId = userId,
             BookingDate = DateTime.UtcNow,
             TicketAmount = dto.TicketAmount,
             FirstName = dto.FirstName,
@@ -89,7 +93,7 @@ public class BookingController(DataContext context) : ControllerBase
         _context.Bookings.Add(booking);
         await _context.SaveChangesAsync();
 
-        // 4. Returnera skapad resurs
+        //. Returnera skapad booking
         return CreatedAtAction(
             nameof(GetBooking),
             new { id = booking.Id },
@@ -97,7 +101,7 @@ public class BookingController(DataContext context) : ControllerBase
         );
     }
 
-    // DELETE /api/booking/{id}
+    // DELETE 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteBooking(string id)
     {
