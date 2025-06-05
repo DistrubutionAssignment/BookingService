@@ -9,13 +9,23 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("DefaultCors",
-        builder =>
+    options.AddPolicy("DefaultCors", policy =>
+    {
+        if (builder.Environment.IsDevelopment())
         {
-            builder.AllowAnyOrigin()
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
+            policy
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        }
+        else
+        {
+            policy
+                .WithOrigins("https://ashy-cliff-0942cde03.6.azurestaticapps.net")
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        }
+    });
 });
 
 builder.Services.AddDbContext<DataContext>(options =>

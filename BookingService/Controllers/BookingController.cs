@@ -16,10 +16,14 @@ namespace BookingService.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class BookingController(DataContext context) : ControllerBase
+public class BookingController : ControllerBase
 {
-    private readonly DataContext _context = context;
+    private readonly DataContext _context;
 
+    public BookingController(DataContext context)
+    {
+        _context = context;
+    }
     // GET 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookings()
