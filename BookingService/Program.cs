@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
         else
         {
             policy
-                .WithOrigins("https://ashy-cliff-0942cde03.6.azurestaticapps.net")
+                .WithOrigins("https://ashy-cliff-0942cde03.6.azurestaticapps.net", "http://localhost:5173/bookings")
                 .AllowAnyMethod()
                 .AllowAnyHeader();
         }
