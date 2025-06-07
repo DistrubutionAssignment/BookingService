@@ -62,7 +62,7 @@ builder.Services.AddSwaggerGen(c => {
         Scheme = JwtBearerDefaults.AuthenticationScheme,      
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Skriv: Bearer {token}",
+        Description = "enter: {token}",
         Reference = new OpenApiReference
         {
             Type = ReferenceType.SecurityScheme,

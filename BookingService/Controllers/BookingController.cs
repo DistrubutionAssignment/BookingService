@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BookingService.Controllers;
 
-[Authorize]
+[Authorize] // Endast inloggade användare kan komma åt dessa endpoints
 [ApiController]
 [Route("api/[controller]")]
 public class BookingController : ControllerBase
@@ -107,8 +107,7 @@ public class BookingController : ControllerBase
 
     // DELETE 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
-
+    [Authorize(Roles = "Admin")] //endast admin kan ta bort bokningar
     public async Task<IActionResult> DeleteBooking(string id)
     {
         var booking = await _context.Bookings.FindAsync(id);
