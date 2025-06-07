@@ -113,7 +113,7 @@ public class BookingController : ControllerBase
         var booking = await _context.Bookings.FindAsync(id);
         if (booking == null) return NotFound();
 
-        var isAdmin = User.IsInRole("Admin");
+        var isAdmin = User.IsInRole("Admin"); //kollar om användaren är admin annars reeeee
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
         if (!isAdmin && booking.UserId != userId)
             return Forbid();

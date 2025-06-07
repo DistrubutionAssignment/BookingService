@@ -3,7 +3,7 @@ using BookingService.Models;
 
 namespace BookingService.Factories;
 
-public static class BookingFactory
+public static class BookingFactory //delvis  med chatgpt
 {
     public static BookingDto ToDto(BookingModel b) => new BookingDto
     {
