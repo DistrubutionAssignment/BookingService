@@ -51,25 +51,30 @@ builder.Services.AddDbContext<DataContext>(opts =>
 
 //OpenAPI (Swagger)
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "BookingService API",
-        Version = "v1"
-    });
-    var scheme = new OpenApiSecurityScheme
+builder.Services.AddSwaggerGen(c => {
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "EventService API", Version = "v1" });
+
+    
+    var bearerScheme = new OpenApiSecurityScheme
     {
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
-        Scheme = JwtBearerDefaults.AuthenticationScheme,
+        Scheme = JwtBearerDefaults.AuthenticationScheme,      
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Skriv: Bearer {token}"
+        Description = "Skriv: Bearer {token}",
+        Reference = new OpenApiReference
+        {
+            Type = ReferenceType.SecurityScheme,
+            Id = JwtBearerDefaults.AuthenticationScheme         
+        }
     };
-    c.AddSecurityDefinition("Bearer", scheme);
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-      { scheme, Array.Empty<string>() }
+
+    c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, bearerScheme);
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { bearerScheme, Array.Empty<string>() }
     });
 });
 
