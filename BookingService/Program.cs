@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.Claims;
+using System.Text;
 using Azure.Identity;
 using BookingService.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -88,7 +89,8 @@ builder.Services
           ValidateIssuerSigningKey = true,
           ValidIssuer = jwtIssuer,
           ValidAudience = jwtAudience,
-          IssuerSigningKey = new SymmetricSecurityKey(keyBytes)
+          IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+          RoleClaimType = ClaimTypes.Role
       };
   });
 
